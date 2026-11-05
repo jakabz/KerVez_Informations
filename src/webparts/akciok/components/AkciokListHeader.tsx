@@ -14,7 +14,7 @@ import {
     Text,
 } from '@fluentui/react';
 import styles from './Akciok.module.scss';
-import { ActionStartDateFilter, ActionsUiViewMode, useGlobalState } from '../store/GlobalStore';
+import { ActionsUiViewMode, useGlobalState } from '../store/GlobalStore';
 export interface IAkciokListHeaderProps { }
 
 const roundedDropdownStyles: Partial<IDropdownStyles> = {
@@ -35,10 +35,10 @@ export const AkciokListHeader: React.FunctionComponent<IAkciokListHeaderProps> =
         setActionsUiViewMode,
         actionSortBy,
         setActionSortBy,
-        startDateFilter,
-        setStartDateFilter,
         hideExpiredActions,
         setHideExpiredActions,
+        hideArchivedActions,
+        setHideArchivedActions,
         selectedActionTypes,
         setSelectedActionTypes,
         availableActionTypes,
@@ -46,23 +46,13 @@ export const AkciokListHeader: React.FunctionComponent<IAkciokListHeaderProps> =
         setActionSearchText,
     } = useGlobalState();
 
-    const startDateFilterOptions: IDropdownOption[] = [
-        { key: 'all', text: 'Nincs szűrés' },
-        { key: 'next1Week', text: 'Következő 1 hét' },
-        { key: 'next1Month', text: 'Következő 1 hónap' },
-        { key: 'next3Months', text: 'Következő 3 hónap' },
-        { key: 'prev1Month', text: 'Előző 1 hónap' },
-        { key: 'prev3Months', text: 'Előző 3 hónap' },
-    ];
-
     const actionTypeOptions = React.useMemo<IDropdownOption[]>(() => (
         availableActionTypes.map((actionType) => ({ key: actionType, text: actionType }))
     ), [availableActionTypes]);
 
     const viewModeOptions: Array<{ key: ActionsUiViewMode; text: string; iconName: string }> = [
-        { key: 'list', text: 'Kártya', iconName: 'PaymentCard' },
-        { key: 'calendar', text: 'Naptár', iconName: 'Calendar' },
-        { key: 'timeline', text: 'Timeline', iconName: 'TimelineProgress' },
+        { key: 'cards', text: 'Kártya', iconName: 'PaymentCard' },
+        { key: 'list', text: 'Lista', iconName: 'BulletedList' },
     ];
 
     const currentViewLabel = React.useMemo(() => {
@@ -87,18 +77,18 @@ export const AkciokListHeader: React.FunctionComponent<IAkciokListHeaderProps> =
                 onClick: () => setActionSortBy('actionTypeDesc'),
             },
             {
-                key: 'startDateDesc',
-                text: 'Kezdési idő (legfrissebb elöl)',
+                key: 'endDateDesc',
+                text: 'Lejárat dátuma (legkésőbbi elöl)',
                 canCheck: true,
-                checked: actionSortBy === 'startDateDesc',
-                onClick: () => setActionSortBy('startDateDesc'),
+                checked: actionSortBy === 'endDateDesc',
+                onClick: () => setActionSortBy('endDateDesc'),
             },
             {
-                key: 'startDateAsc',
-                text: 'Kezdési idő (legrégebbi elöl)',
+                key: 'endDateAsc',
+                text: 'Lejárat dátuma (legkorábbi elöl)',
                 canCheck: true,
-                checked: actionSortBy === 'startDateAsc',
-                onClick: () => setActionSortBy('startDateAsc'),
+                checked: actionSortBy === 'endDateAsc',
+                onClick: () => setActionSortBy('endDateAsc'),
             },
             {
                 key: 'responsiblePersonAsc',
@@ -151,7 +141,7 @@ export const AkciokListHeader: React.FunctionComponent<IAkciokListHeaderProps> =
                 />
                 <div ref={viewButtonWrapperRef}>
                     <DefaultButton
-                        text={`Megjelenés`}
+                        text={currentViewLabel}
                         iconProps={{ iconName: 'View' }}
                         menuProps={viewMenuProps}
                     />
@@ -177,21 +167,12 @@ export const AkciokListHeader: React.FunctionComponent<IAkciokListHeaderProps> =
                         <Checkbox
                             label="Lejárt információk elrejtése"
                             checked={hideExpiredActions}
-                            onChange={(_, checked) => {
-                                const nextValue = !!checked;
-                                setHideExpiredActions(nextValue);
-
-                                if (!nextValue) {
-                                    setStartDateFilter('prev3Months');
-                                }
-                            }}
+                            onChange={(_, checked) => setHideExpiredActions(!!checked)}
                         />
-                        <Dropdown
-                            label="Kezdési idő"
-                            options={startDateFilterOptions}
-                            selectedKey={startDateFilter}
-                            styles={roundedDropdownStyles}
-                            onChange={(_, option) => setStartDateFilter((option?.key as ActionStartDateFilter) || 'all')}
+                        <Checkbox
+                            label="Archive információk elrejtése"
+                            checked={hideArchivedActions}
+                            onChange={(_, checked) => setHideArchivedActions(!!checked)}
                         />
                         <Dropdown
                             label="Információ típusa"

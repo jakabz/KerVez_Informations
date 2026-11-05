@@ -8,21 +8,14 @@ import { IShopListItem } from '../models/IShop';
 
 export type PanelMode = 'create' | 'edit' | 'view';
 export type ViewMode = 'dashboard' | 'full';
-export type ActionsUiViewMode = 'list' | 'calendar' | 'timeline';
+export type ActionsUiViewMode = 'cards' | 'list';
 export type ActionSortBy =
     'actionTypeAsc'
     | 'actionTypeDesc'
-    | 'startDateDesc'
-    | 'startDateAsc'
+    | 'endDateDesc'
+    | 'endDateAsc'
     | 'responsiblePersonAsc'
     | 'responsiblePersonDesc';
-export type ActionStartDateFilter =
-    'all'
-    | 'next1Week'
-    | 'next1Month'
-    | 'next3Months'
-    | 'prev1Month'
-    | 'prev3Months';
 
 type GlobalState = {
     context: WebPartContext;
@@ -40,8 +33,8 @@ type GlobalState = {
     selectedActionId: number | undefined;
     refreshKey: number;
     actionSortBy: ActionSortBy;
-    startDateFilter: ActionStartDateFilter;
     hideExpiredActions: boolean;
+    hideArchivedActions: boolean;
     selectedActionTypes: string[];
     availableActionTypes: string[];
     actionSearchText: string;
@@ -62,8 +55,8 @@ type GlobalState = {
     closePanel: () => void;
     triggerRefresh: () => void;
     setActionSortBy: (actionSortBy: ActionSortBy) => void;
-    setStartDateFilter: (startDateFilter: ActionStartDateFilter) => void;
     setHideExpiredActions: (hideExpiredActions: boolean) => void;
+    setHideArchivedActions: (hideArchivedActions: boolean) => void;
     setSelectedActionTypes: (selectedActionTypes: string[]) => void;
     setAvailableActionTypes: (availableActionTypes: string[]) => void;
     setActionSearchText: (actionSearchText: string) => void;
@@ -74,7 +67,7 @@ type GlobalState = {
 
 type GlobalStoreApi = ReturnType<typeof createGlobalStore>;
 
-const createInitialState = (): Omit<GlobalState, 'setContext' | 'setActionsListId' | 'setShopsListId' | 'setGoodsListId' | 'setRelatedDocumentLibraryId' | 'setTasksListPage' | 'setEditorGroup' | 'setIsEditor' | 'setPanelMode' | 'openPanel' | 'openCreatePanel' | 'openActionPanel' | 'closePanel' | 'triggerRefresh' | 'setActionSortBy' | 'setStartDateFilter' | 'setHideExpiredActions' | 'setSelectedActionTypes' | 'setAvailableActionTypes' | 'setActionSearchText' | 'setViewMode' | 'setActionsUiViewMode' | 'resetState'> => ({
+const createInitialState = (): Omit<GlobalState, 'setContext' | 'setActionsListId' | 'setShopsListId' | 'setGoodsListId' | 'setRelatedDocumentLibraryId' | 'setTasksListPage' | 'setEditorGroup' | 'setIsEditor' | 'setPanelMode' | 'openPanel' | 'openCreatePanel' | 'openActionPanel' | 'closePanel' | 'triggerRefresh' | 'setActionSortBy' | 'setHideExpiredActions' | 'setHideArchivedActions' | 'setSelectedActionTypes' | 'setAvailableActionTypes' | 'setActionSearchText' | 'setViewMode' | 'setActionsUiViewMode' | 'resetState'> => ({
     context: {} as WebPartContext,
     actionsListId: '',
     shopsListId: '',
@@ -89,14 +82,14 @@ const createInitialState = (): Omit<GlobalState, 'setContext' | 'setActionsListI
     panelMode: 'create',
     selectedActionId: undefined,
     refreshKey: 0,
-    actionSortBy: 'startDateDesc',
-    startDateFilter: 'all',
+    actionSortBy: 'endDateDesc',
     hideExpiredActions: true,
+    hideArchivedActions: true,
     selectedActionTypes: [],
     availableActionTypes: [],
     actionSearchText: '',
     viewMode: 'full',
-    actionsUiViewMode: 'list',
+    actionsUiViewMode: 'cards',
 });
 
 export const createGlobalStore = () => createStore<GlobalState>((set, get) => ({
@@ -156,8 +149,8 @@ export const createGlobalStore = () => createStore<GlobalState>((set, get) => ({
     closePanel: () => set({ isPanelOpen: false, panelMode: 'create', selectedActionId: undefined }),
     triggerRefresh: () => set(s => ({ refreshKey: s.refreshKey + 1 })),
     setActionSortBy: (actionSortBy: ActionSortBy) => set({ actionSortBy }),
-    setStartDateFilter: (startDateFilter: ActionStartDateFilter) => set({ startDateFilter }),
     setHideExpiredActions: (hideExpiredActions: boolean) => set({ hideExpiredActions }),
+    setHideArchivedActions: (hideArchivedActions: boolean) => set({ hideArchivedActions }),
     setSelectedActionTypes: (selectedActionTypes: string[]) => set({ selectedActionTypes }),
     setAvailableActionTypes: (availableActionTypes: string[]) => set({ availableActionTypes }),
     setActionSearchText: (actionSearchText: string) => set({ actionSearchText }),

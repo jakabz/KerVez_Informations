@@ -27,12 +27,12 @@ const atEndOfDay = (value: Date): Date => {
 };
 
 const normalizeItem = (item: IAkcioListItem): TimelineItem | null => {
-    if (!item.startDate) {
+    if (!item.endDate) {
         return null;
     }
 
-    const start = atStartOfDay(new Date(item.startDate));
-    const end = item.endDate ? atEndOfDay(new Date(item.endDate)) : atEndOfDay(new Date(item.startDate));
+    const start = atStartOfDay(new Date(item.endDate));
+    const end = atEndOfDay(start);
 
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
         return null;
@@ -153,7 +153,7 @@ export const AkciokTimeline: React.FunctionComponent<IAkciokTimelineProps> = ({ 
                                 <Text variant="smallPlus" className={styles.timelineTitle}>{item.title}</Text>
                                 <Text variant="small" className={styles.timelineMeta}>
                                     <span className={styles.actionTypeColorDot} style={{ backgroundColor: actionTypeColor }} aria-hidden="true" />
-                                    {item.actionType} · {formatDate(item.start)} - {formatDate(item.end)}
+                                    {item.actionType} · Lejárat: {formatDate(item.end)}
                                 </Text>
                             </button>
 

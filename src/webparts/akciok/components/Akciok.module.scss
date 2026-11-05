@@ -116,6 +116,61 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.06);
 }
 
+.akcioListTableWrap {
+  overflow-x: auto;
+  border: 1px solid "[theme:neutralLight, default: #edebe9]";
+  border-radius: 8px;
+  background-color: "[theme:white, default: #ffffff]";
+}
+
+.akcioListTable {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+  text-align: left;
+
+  th,
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid "[theme:neutralLight, default: #edebe9]";
+  }
+
+  th {
+    color: "[theme:neutralSecondary, default: #605e5c]";
+    background-color: "[theme:neutralLighterAlt, default: #faf9f8]";
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  tbody tr:hover {
+    background-color: "[theme:neutralLighterAlt, default: #faf9f8]";
+  }
+}
+
+.akcioListTitle {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: "[theme:themePrimary, default: #0078d4]";
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid "[theme:themePrimary, default: #0078d4]";
+    outline-offset: 2px;
+  }
+}
+
 .akcioCard {
   background-color: "[theme:white, default: #ffffff]";
   border: 1px;

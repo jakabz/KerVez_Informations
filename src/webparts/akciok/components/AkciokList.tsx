@@ -8,25 +8,11 @@ import { useGlobalState } from '../store/GlobalStore';
 import { IAkcioListItem } from '../models/IAkcio';
 import pnpListsServices from '../services/pnpListServices';
 import styles from './Akciok.module.scss';
-import { AkciokCalendar } from './AkciokCalendar';
-import { AkciokTimeline } from './AkciokTimeline';
 
 const PAGE_SIZE = 20;
 
 const formatDate = (iso: string | null): string =>
     iso ? new Date(iso).toLocaleDateString('hu-HU') : '—';
-
-const addDays = (value: Date, days: number): Date => {
-    const result = new Date(value);
-    result.setDate(result.getDate() + days);
-    return result;
-};
-
-const addMonths = (value: Date, months: number): Date => {
-    const result = new Date(value);
-    result.setMonth(result.getMonth() + months);
-    return result;
-};
 
 const getActionTypeColor = (actionTypeColors: Record<string, string>, actionType: string): string => (
     actionTypeColors[actionType] || '#a19f9d'
@@ -56,7 +42,7 @@ const AkcioCard: React.FunctionComponent<{ item: IAkcioListItem; onOpen: (itemId
         <Text variant="mediumPlus" className={styles.akcioCardTitle}>{item.title}</Text>
         <Stack horizontal verticalAlign="center" tokens={{ childrenGap: 6 }} className={styles.akcioCardDates}>
             <Icon iconName="Calendar" />
-            <Text variant="small">{formatDate(item.startDate)} – {formatDate(item.endDate)}</Text>
+            <Text variant="small">Lejárat: {formatDate(item.endDate)}</Text>
         </Stack>
         {item.responsiblePersonTitle && (
             <Stack horizontal verticalAlign="center" tokens={{ childrenGap: 6 }} className={styles.akcioCardPerson}>
@@ -78,8 +64,8 @@ export const AkciokList: React.FunctionComponent<IAkciokListProps> = ({ actionTy
         isEditor,
         openActionPanel,
         actionSortBy,
-        startDateFilter,
         hideExpiredActions,
+        hideArchivedActions,
         actionsUiViewMode,
         selectedActionTypes,
         actionSearchText,
@@ -119,7 +105,7 @@ export const AkciokList: React.FunctionComponent<IAkciokListProps> = ({ actionTy
 
     React.useEffect(() => {
         setCurrentPage(1);
-    }, [actionSortBy, startDateFilter, hideExpiredActions, selectedActionTypes, actionSearchText]);
+    }, [actionSortBy, hideExpiredActions, hideArchivedActions, selectedActionTypes, actionSearchText]);
 
     const filteredItems = React.useMemo(() => {
         const today = new Date();
@@ -128,17 +114,12 @@ export const AkciokList: React.FunctionComponent<IAkciokListProps> = ({ actionTy
         const isSearchActive = normalizedSearchText.length > 0;
 
         return items.filter((item) => {
-            if (!isEditor && item.status === 'Piszkozat') {
+            if (!isEditor && item.status !== 'Közzétéve') {
                 return false;
             }
 
-            if (!isEditor && item.publishStartDate) {
-                const publishStartDate = new Date(item.publishStartDate);
-                publishStartDate.setHours(0, 0, 0, 0);
-
-                if (publishStartDate.getTime() > today.getTime()) {
-                    return false;
-                }
+            if (hideArchivedActions && item.status === 'Archive') {
+                return false;
             }
 
             if (isSearchActive) {
@@ -161,36 +142,9 @@ export const AkciokList: React.FunctionComponent<IAkciokListProps> = ({ actionTy
                 }
             }
 
-            if (startDateFilter === 'all') {
-                return true;
-            }
-
-            if (!item.startDate) {
-                return false;
-            }
-
-            const startDate = new Date(item.startDate);
-            startDate.setHours(0, 0, 0, 0);
-
-            if (startDateFilter === 'next1Week') {
-                return startDate.getTime() >= today.getTime() && startDate.getTime() <= addDays(today, 7).getTime();
-            }
-
-            if (startDateFilter === 'next1Month') {
-                return startDate.getTime() >= today.getTime() && startDate.getTime() <= addMonths(today, 1).getTime();
-            }
-
-            if (startDateFilter === 'next3Months') {
-                return startDate.getTime() >= today.getTime() && startDate.getTime() <= addMonths(today, 3).getTime();
-            }
-
-            if (startDateFilter === 'prev1Month') {
-                return startDate.getTime() < today.getTime() && startDate.getTime() >= addMonths(today, -1).getTime();
-            }
-
-            return startDate.getTime() < today.getTime() && startDate.getTime() >= addMonths(today, -3).getTime();
+            return true;
         });
-    }, [items, isEditor, startDateFilter, hideExpiredActions, selectedActionTypes, actionSearchText]);
+    }, [items, isEditor, hideExpiredActions, hideArchivedActions, selectedActionTypes, actionSearchText]);
 
     const sortedItems = React.useMemo(() => {
         const result = [...filteredItems];
@@ -215,18 +169,18 @@ export const AkciokList: React.FunctionComponent<IAkciokListProps> = ({ actionTy
             return result;
         }
 
-        if (actionSortBy === 'startDateAsc') {
+        if (actionSortBy === 'endDateAsc') {
             result.sort((a, b) => {
-                const aTime = a.startDate ? new Date(a.startDate).getTime() : 0;
-                const bTime = b.startDate ? new Date(b.startDate).getTime() : 0;
+                const aTime = a.endDate ? new Date(a.endDate).getTime() : 0;
+                const bTime = b.endDate ? new Date(b.endDate).getTime() : 0;
                 return aTime - bTime;
             });
             return result;
         }
 
         result.sort((a, b) => {
-            const aTime = a.startDate ? new Date(a.startDate).getTime() : 0;
-            const bTime = b.startDate ? new Date(b.startDate).getTime() : 0;
+            const aTime = a.endDate ? new Date(a.endDate).getTime() : 0;
+            const bTime = b.endDate ? new Date(b.endDate).getTime() : 0;
             return bTime - aTime;
         });
 
@@ -250,7 +204,7 @@ export const AkciokList: React.FunctionComponent<IAkciokListProps> = ({ actionTy
         return <MessageBar messageBarType={MessageBarType.error}>{error}</MessageBar>;
     }
 
-    if (!sortedItems.length && actionsUiViewMode === 'list') {
+    if (!sortedItems.length) {
         return <Stack horizontalAlign="center" style={{ padding: '2em' }}><Text variant="medium">Nincs megjeleníthető információ.</Text></Stack>;
     }
 
@@ -258,26 +212,57 @@ export const AkciokList: React.FunctionComponent<IAkciokListProps> = ({ actionTy
         openActionPanel(itemId, isEditor ? 'edit' : 'view');
     };
 
-    if (actionsUiViewMode === 'calendar') {
-        return <AkciokCalendar items={sortedItems} onOpen={handleOpenCard} actionTypeColors={actionTypeColors} />;
-    }
-
-    if (actionsUiViewMode === 'timeline') {
-        return <AkciokTimeline items={sortedItems} onOpen={handleOpenCard} actionTypeColors={actionTypeColors} />;
-    }
-
     return (
         <Stack tokens={{ childrenGap: 10 }}>
-            <div className={styles.akcioCardGrid}>
-                {visibleItems.map(item => (
-                    <AkcioCard
-                        key={item.id}
-                        item={item}
-                        onOpen={handleOpenCard}
-                        actionTypeColor={getActionTypeColor(actionTypeColors, item.actionType)}
-                    />
-                ))}
-            </div>
+            {actionsUiViewMode === 'cards' ? (
+                <div className={styles.akcioCardGrid}>
+                    {visibleItems.map(item => (
+                        <AkcioCard
+                            key={item.id}
+                            item={item}
+                            onOpen={handleOpenCard}
+                            actionTypeColor={getActionTypeColor(actionTypeColors, item.actionType)}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div className={styles.akcioListTableWrap}>
+                    <table className={styles.akcioListTable}>
+                        <thead>
+                            <tr>
+                                <th scope="col">Információ</th>
+                                <th scope="col">Típus</th>
+                                <th scope="col">Státusz</th>
+                                <th scope="col">Lejárat</th>
+                                <th scope="col">Felelős</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {visibleItems.map(item => (
+                                <tr key={item.id}>
+                                    <td>
+                                        <button
+                                            type="button"
+                                            className={styles.akcioListTitle}
+                                            onClick={() => handleOpenCard(item.id)}
+                                        >
+                                            {item.title}
+                                        </button>
+                                    </td>
+                                    <td>{item.actionType}</td>
+                                    <td>
+                                        <span className={`${styles.statusBadge} ${item.status === 'Közzétéve' ? styles.statusPublished : styles.statusDraft}`}>
+                                            {item.status}
+                                        </span>
+                                    </td>
+                                    <td>{formatDate(item.endDate)}</td>
+                                    <td>{item.responsiblePersonTitle || '—'}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
             {shouldShowPagination && (
                 <Stack horizontal horizontalAlign="space-between" verticalAlign="center" wrap tokens={{ childrenGap: 8 }}>

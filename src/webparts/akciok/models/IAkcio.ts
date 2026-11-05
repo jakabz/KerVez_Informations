@@ -2,9 +2,7 @@ export interface IAkcio {
     title: string;
     actionType: string;
     status: string;
-    startDate: Date | undefined;
     endDate: Date | undefined;
-    publishStartDate: Date | undefined;
     description: string;
     responsiblePersonLoginName: string;
     responsibleEmail: string;
@@ -20,9 +18,7 @@ export interface IAkcioListItem {
     title: string;
     actionType: string;
     status: string;
-    startDate: string | null;
     endDate: string | null;
-    publishStartDate: string | null;
     responsiblePersonTitle: string;
     relatedProducts: string;
 }
@@ -37,9 +33,7 @@ export const defaultAkcio: IAkcio = {
     title: '',
     actionType: '',
     status: 'Piszkozat',
-    startDate: undefined,
     endDate: undefined,
-    publishStartDate: undefined,
     description: '',
     responsiblePersonLoginName: '',
     responsibleEmail: '',

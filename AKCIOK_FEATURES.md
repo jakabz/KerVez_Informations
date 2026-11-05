@@ -4,13 +4,12 @@ Ez a dokumentum a valós projektháztartás alapján összegzi az összes megval
 
 ## 1. Akciók Listázása és Megjelenítése
 
-**Funkció:** Akciók kártyalayoutban történő megjelenítése
+**Funkció:** Akciók kártya- és lista nézetben történő megjelenítése
 
-- Összes akció megtekintése kártyarendszerben
+- Megjelenítés kártya- vagy lista nézetben
 - Lapozás 20 tétel/oldal
-- Kártyaadatok: cím, típus, dátumok, felelős személy, státusz
-- Piszkozat akciók rejtése nem-szerkesztőktől
-- Publikálási dátum ellenőrzése: jövőbeli publikálási dátummal rendelkező akciók nem látszanak nem-szerkesztőknek
+- Kártyaadatok: cím, típus, lejárat dátuma, felelős személy, státusz
+- Nem-szerkesztők csak a közzétett információkat látják
 
 **Megvalósítás:** AkciokList.tsx, pnpListServices.ts
 
@@ -19,14 +18,8 @@ Ez a dokumentum a valós projektháztartás alapján összegzi az összes megval
 **Funkció:** Valós idejű szűrés több feltétel alapján
 
 - **Akció típus szűrés** - rendelkezésre álló típusok közül választható
-- **Dátum szűrés (6 opció):**
-  - Nincs szűrés
-  - Következő 1 hét
-  - Következő 1 hónap
-  - Következő 3 hónap
-  - Előző 1 hónap
-  - Előző 3 hónap
-- **Lejárt akciók elrejtése** - toggle funkció
+- **Lejárt információk elrejtése** - toggle funkció
+- **Archive információk elrejtése** - toggle funkció
 - **Többszörös szűrés** - az összes szűrő kombinálható
 - Szűrő állapot az oldal frissítésénél elvész (session-scoped)
 
@@ -38,8 +31,8 @@ Ez a dokumentum a valós projektháztartás alapján összegzi az összes megval
 
 - Akció típusa (A-Z)
 - Akció típusa (Z-A)
-- Kezdési idő (legfrissebb elöl - alapértelmezett)
-- Kezdési idő (legrégebbi elöl)
+- Lejárati dátum (legkésőbbi elöl - alapértelmezett)
+- Lejárati dátum (legkorábbi elöl)
 - Kapcsolattartó (A-Z)
 - Kapcsolattartó (Z-A)
 - Rendezés nem perzisztens az oldal frissítésénél
@@ -59,8 +52,7 @@ Ez a dokumentum a valós projektháztartás alapján összegzi az összes megval
   - Akciós újság
   - Online újság
   - Egyéb akció
-- Kezdési és végdátum
-- Publikálási dátum
+- Lejárati dátum
 - Felelős személy kijelölése
 - Leírás szerkesztése (Rich Text Editor)
 - Mechanizmus/működési módszer szerkesztése
@@ -93,7 +85,7 @@ Ez a dokumentum a valós projektháztartás alapján összegzi az összes megval
 
 - Közzététel - státusz: Piszkozat → Közzétéve
 - Közzétételkor megerősítő dialógus
-- Publikálási dátum megjegyzés
+- Az információ azonnali megjelenésének megerősítése
 - Csak szerkesztőknek elérhető
 - Az már közzétett akciók nem módosíthatók vissza piszkozat állapotba
 - Státusz frissítés több lehetséges mezőnevet próbál ("Status", "Státusz", OData__Status, stb.)

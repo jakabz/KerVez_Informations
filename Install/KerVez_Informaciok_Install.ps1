@@ -226,6 +226,28 @@ function Ensure-FieldInDefaultView {
 	Set-PnPView -List $ListTitle -Identity $defaultView.Id -Fields $newFields -ErrorAction Stop | Out-Null
 }
 
+function Remove-FieldsFromDefaultView {
+	param(
+		[Parameter(Mandatory = $true)]
+		[string]$ListTitle,
+
+		[Parameter(Mandatory = $true)]
+		[string[]]$InternalNames
+	)
+
+	$defaultView = Get-PnPView -List $ListTitle -Includes DefaultView, ViewFields -ErrorAction Stop | Where-Object { $_.DefaultView } | Select-Object -First 1
+	if (-not $defaultView) {
+		Write-Warning "Nem talalhato alapertelmezett nezet a listaban: $ListTitle"
+		return
+	}
+
+	$currentFields = @($defaultView.ViewFields | ForEach-Object { [string]$_ })
+	$newFields = @($currentFields | Where-Object { $InternalNames -notcontains $_ })
+	if ($newFields.Count -ne $currentFields.Count) {
+		Set-PnPView -List $ListTitle -Identity $defaultView.Id -Fields $newFields -ErrorAction Stop | Out-Null
+	}
+}
+
 function Ensure-Field {
 	param(
 		[Parameter(Mandatory = $true)]
@@ -246,6 +268,17 @@ function Ensure-Field {
 	$addToDefaultView = [bool](Get-HashtableValue -Table $Field -Key "AddToDefaultView" -Default $true)
 
 	if ($existingField) {
+		$kind = [string](Get-HashtableValue -Table $Field -Key "Kind" -Default "Simple")
+		if ($kind -eq "Choice") {
+			$existingChoices = @($existingField.Choices | ForEach-Object { [string]$_ })
+			$requestedChoices = @($Field.Choices | ForEach-Object { [string]$_ })
+			$missingChoices = @($requestedChoices | Where-Object { $existingChoices -notcontains $_ })
+			if ($missingChoices.Count -gt 0) {
+				$updatedChoices = @($existingChoices + $missingChoices)
+				Set-PnPField -List $ListTitle -Identity $internalName -Values @{ Choices = $updatedChoices } -ErrorAction Stop | Out-Null
+			}
+		}
+
 		if ($addToDefaultView) {
 			try {
 				Ensure-FieldInDefaultView -ListTitle $ListTitle -InternalName $internalName
@@ -304,7 +337,7 @@ function Ensure-Field {
 	Write-Host "  - Oszlop letrehozva: $internalName"
 }
 
-$statusChoices = @("Piszkozat", "Közzétéve")
+$statusChoices = @("Piszkozat", "Közzétéve", "Archive")
 $actionTypeChoices = @("EcoFamily napok", "Plakátos akció", "Extra akció", "Kuponos akció", "Akciós újság", "Online újság", "Egyéb akció")
 
 $ListDefinitions = @(
@@ -314,12 +347,11 @@ $ListDefinitions = @(
 		Description = "Információk listája"
 		OnQuickLaunch = $true
 		TitleDisplayName = "Információ címe"
+		FieldsToRemoveFromDefaultView = @("StartDate", "PublishStartDate")
 		Fields = @(
 			@{ InternalName = "ActionType"; DisplayName = "Információ típusa"; Kind = "Choice"; Choices = $actionTypeChoices; Multi = $false },
             @{ InternalName = "Status"; DisplayName = "Státusz"; Kind = "Choice"; Choices = $statusChoices; Multi = $false },
-            @{ InternalName = "StartDate"; DisplayName = "Információ megjelenési dátuma"; Kind = "Simple"; Type = "DateTime" },
             @{ InternalName = "EndDate"; DisplayName = "Információ befejező dátuma"; Kind = "Simple"; Type = "DateTime" },
-            @{ InternalName = "PublishStartDate"; DisplayName = "Információ közzétételi dátuma"; Kind = "Simple"; Type = "DateTime" },
             @{ InternalName = "Description"; DisplayName = "Információ leírása"; Kind = "Note"; RichText = $true },
             @{ InternalName = "ResponsiblePerson"; DisplayName = "Felelős személy"; Kind = "User"; Multi = $false },
 			@{ InternalName = "ResponsibleEmail"; DisplayName = "Felelős email"; Kind = "Simple"; Type = "Text" },
@@ -357,6 +389,11 @@ foreach ($listDef in $ListDefinitions) {
 
 	foreach ($fieldDef in $listDef.Fields) {
 		Ensure-Field -ListTitle $listDef.Title -Field $fieldDef
+	}
+
+	$fieldsToRemoveFromDefaultView = @(Get-HashtableValue -Table $listDef -Key "FieldsToRemoveFromDefaultView" -Default @())
+	if ($fieldsToRemoveFromDefaultView.Count -gt 0) {
+		Remove-FieldsFromDefaultView -ListTitle $listDef.Title -InternalNames $fieldsToRemoveFromDefaultView
 	}
 }
 

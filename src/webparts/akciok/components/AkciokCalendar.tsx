@@ -44,12 +44,12 @@ const getGridDays = (monthStart: Date): Date[] => {
 };
 
 const normalizeItemRange = (item: IAkcioListItem): { start: Date; end: Date } | null => {
-    if (!item.startDate) {
+    if (!item.endDate) {
         return null;
     }
 
-    const start = atStartOfDay(new Date(item.startDate));
-    const end = item.endDate ? atEndOfDay(new Date(item.endDate)) : atEndOfDay(new Date(item.startDate));
+    const start = atStartOfDay(new Date(item.endDate));
+    const end = atEndOfDay(start);
 
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
         return null;

@@ -42,6 +42,7 @@ const datePickerStrings: IDatePickerStrings = {
 const statusOptions: IDropdownOption[] = [
     { key: 'Piszkozat', text: 'Piszkozat' },
     { key: 'Közzétéve', text: 'Közzétéve' },
+    { key: 'Archive', text: 'Archive' },
 ];
 
 const relatedShopsTypeOptions: IDropdownOption[] = [
@@ -438,9 +439,7 @@ export const AkcioPanel: React.FunctionComponent<IAkcioPanelProps> = ({ context 
                     title: item.title,
                     actionType: item.actionType,
                     status: item.status,
-                    startDate: item.startDate,
                     endDate: item.endDate,
-                    publishStartDate: item.publishStartDate,
                     description: item.description,
                     responsiblePersonLoginName: item.responsiblePersonLoginName,
                     responsibleEmail: item.responsibleEmail ?? '',
@@ -481,11 +480,7 @@ export const AkcioPanel: React.FunctionComponent<IAkcioPanelProps> = ({ context 
     };
 
     const getPublishDialogText = (): string => {
-        if (form.publishStartDate) {
-            return `Az információ ${formatDate(form.publishStartDate)} dátumtól lesz mindenki számára elérhető. Folytatod a közzétételt?`;
-        }
-
-        return 'Nincs megadva publikálási dátum, ezért az információ azonnal mindenki számára elérhető lesz. Folytatod a közzétételt?';
+        return 'A közzétett információ azonnal megjelenik a boltok számára. Folytatod a közzétételt?';
     };
 
     const handlePublishConfirm = async (): Promise<void> => {
@@ -613,10 +608,8 @@ export const AkcioPanel: React.FunctionComponent<IAkcioPanelProps> = ({ context 
                 </Stack>
             </Stack>
 
-            {renderViewSection('Dátumok', [
-                renderViewField('Információ megjelenési dátuma', formatDate(form.startDate)),
-                renderViewField('Információ befejező dátuma', formatDate(form.endDate)),
-                //renderViewField('Információ közzétételi dátuma', formatDate(form.publishStartDate)),
+            {renderViewSection('Lejárati dátum', [
+                renderViewField('Lejárat dátuma', formatDate(form.endDate)),
             ])}
 
             {renderViewSection('Leírás', [
@@ -705,32 +698,14 @@ export const AkcioPanel: React.FunctionComponent<IAkcioPanelProps> = ({ context 
                             />,
                         ])}
 
-                        {renderEditSection('Dátumok', [
-                            <DatePicker
-                                key="startDate"
-                                label="Információ megjelenési dátuma"
-                                firstDayOfWeek={DayOfWeek.Monday}
-                                strings={datePickerStrings}
-                                value={form.startDate}
-                                onSelectDate={(d) => setForm(f => ({ ...f, startDate: d ?? undefined }))}
-                                formatDate={(d) => d ? d.toLocaleDateString('hu-HU') : ''}
-                            />,
+                        {renderEditSection('Lejárati dátum', [
                             <DatePicker
                                 key="endDate"
-                                label="Információ befejező dátuma"
+                                label="Lejárat dátuma"
                                 firstDayOfWeek={DayOfWeek.Monday}
                                 strings={datePickerStrings}
                                 value={form.endDate}
                                 onSelectDate={(d) => setForm(f => ({ ...f, endDate: d ?? undefined }))}
-                                formatDate={(d) => d ? d.toLocaleDateString('hu-HU') : ''}
-                            />,
-                            <DatePicker
-                                key="publishStartDate"
-                                label="Információ közzétételi dátuma"
-                                firstDayOfWeek={DayOfWeek.Monday}
-                                strings={datePickerStrings}
-                                value={form.publishStartDate}
-                                onSelectDate={(d) => setForm(f => ({ ...f, publishStartDate: d ?? undefined }))}
                                 formatDate={(d) => d ? d.toLocaleDateString('hu-HU') : ''}
                             />,
                         ])}

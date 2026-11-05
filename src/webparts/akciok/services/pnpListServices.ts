@@ -120,9 +120,7 @@ export class ListViewService {
                 'Title',
                 'ActionType',
                 statusFieldName,
-                'StartDate',
                 'EndDate',
-                'PublishStartDate',
                 'Description',
                 'RelatedDocuments',
                 'RelatedShopsType',
@@ -141,9 +139,7 @@ export class ListViewService {
             title: item.Title ?? '',
             actionType: item.ActionType ?? '',
             status: item[statusFieldName] ?? 'Piszkozat',
-            startDate: item.StartDate ? new Date(item.StartDate) : undefined,
             endDate: item.EndDate ? new Date(item.EndDate) : undefined,
-            publishStartDate: item.PublishStartDate ? new Date(item.PublishStartDate) : undefined,
             description: item.Description ?? '',
             responsiblePersonLoginName: item.ResponsiblePerson?.Name ?? '',
             responsiblePersonTitle: item.ResponsiblePerson?.Title ?? '',
@@ -187,9 +183,7 @@ export class ListViewService {
         const itemData: Record<string, unknown> = {
             Title: data.title,
             ActionType: data.actionType,
-            StartDate: data.startDate?.toISOString() ?? null,
             EndDate: data.endDate?.toISOString() ?? null,
-            PublishStartDate: data.publishStartDate?.toISOString() ?? null,
             Description: data.description || null,
             RelatedDocuments: data.relatedDocuments || null,
             RelatedShopsType: data.relatedShopsType,
@@ -214,18 +208,16 @@ export class ListViewService {
     public async getActions(listId: string): Promise<IAkcioListItem[]> {
         const statusFieldName = await this.getStatusFieldName(listId);
         const items = await this.sp.web.lists.getById(listId).items
-            .select('Id', 'Title', 'ActionType', statusFieldName, 'StartDate', 'EndDate', 'PublishStartDate', 'ResponsiblePerson/Title', 'RelatedProducts')
+            .select('Id', 'Title', 'ActionType', statusFieldName, 'EndDate', 'ResponsiblePerson/Title', 'RelatedProducts')
             .expand('ResponsiblePerson')
-            .orderBy('StartDate', false)();
+            .orderBy('EndDate', false)();
 
         return items.map(item => ({
             id: item.Id,
             title: item.Title ?? '',
             actionType: item.ActionType ?? '',
             status: item[statusFieldName] ?? '',
-            startDate: item.StartDate ?? null,
             endDate: item.EndDate ?? null,
-            publishStartDate: item.PublishStartDate ?? null,
             responsiblePersonTitle: item.ResponsiblePerson?.Title ?? '',
             relatedProducts: item.RelatedProducts ?? '',
         }));
