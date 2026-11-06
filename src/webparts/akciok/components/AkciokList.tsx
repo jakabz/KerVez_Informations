@@ -114,7 +114,8 @@ export const AkciokList: React.FunctionComponent<IAkciokListProps> = ({ actionTy
         const isSearchActive = normalizedSearchText.length > 0;
 
         return items.filter((item) => {
-            if (!isEditor && item.status !== 'Közzétéve') {
+            // Boltok (nem szerkesztők) a közzétett és archivált információkat láthatják, a piszkozatokat nem.
+            if (!isEditor && item.status !== 'Közzétéve' && item.status !== 'Archive') {
                 return false;
             }
 

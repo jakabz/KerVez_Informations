@@ -248,6 +248,8 @@ export const AkcioPanel: React.FunctionComponent<IAkcioPanelProps> = ({ context 
         isEditor,
     } = useGlobalState();
     const [form, setForm] = React.useState<IAkcio>({ ...defaultAkcio });
+    // The status stored in the list (not the dropdown's unsaved value); drives whether publishing is offered.
+    const [savedStatus, setSavedStatus] = React.useState<string>('');
     const [responsiblePersonTitle, setResponsiblePersonTitle] = React.useState<string>('');
     const [responsiblePersonEmail, setResponsiblePersonEmail] = React.useState<string>('');
     const [responsiblePersonDefaultUser, setResponsiblePersonDefaultUser] = React.useState<string>('');
@@ -292,6 +294,7 @@ export const AkcioPanel: React.FunctionComponent<IAkcioPanelProps> = ({ context 
 
     const isReadOnly = panelMode === 'view';
     const isCreateMode = panelMode === 'create';
+    const canPublish = isCreateMode || savedStatus === 'Piszkozat';
 
     const closePanelState = (force: boolean = false): void => {
         if (!force && (isSaving || isPublishInProgress || isPublishDialogOpen)) {
@@ -299,6 +302,7 @@ export const AkcioPanel: React.FunctionComponent<IAkcioPanelProps> = ({ context 
         }
 
         setForm({ ...defaultAkcio });
+        setSavedStatus('');
         setResponsiblePersonTitle('');
         setResponsiblePersonEmail('');
         setResponsiblePersonDefaultUser('');
@@ -351,6 +355,7 @@ export const AkcioPanel: React.FunctionComponent<IAkcioPanelProps> = ({ context 
             } else if (selectedActionId) {
                 await pnpListsServices.updateAction(actionsListId, selectedActionId, formToSave);
             }
+            setSavedStatus(formToSave.status);
             setLastSavedAt(new Date());
             triggerRefresh();
             return true;
@@ -410,6 +415,7 @@ export const AkcioPanel: React.FunctionComponent<IAkcioPanelProps> = ({ context 
 
         if (panelMode === 'create') {
             setForm({ ...defaultAkcio });
+            setSavedStatus('');
             setResponsiblePersonTitle('');
             setResponsiblePersonEmail('');
             setResponsiblePersonDefaultUser('');
@@ -449,6 +455,7 @@ export const AkcioPanel: React.FunctionComponent<IAkcioPanelProps> = ({ context 
                     relatedProducts: item.relatedProducts,
                     images: item.images,
                 });
+                setSavedStatus(item.status);
                 setResponsiblePersonTitle(item.responsiblePersonTitle ?? '');
                 setResponsiblePersonEmail(item.responsiblePersonEmail ?? '');
                 setResponsiblePersonDefaultUser(toDefaultSelectedUser(item.responsiblePersonEmail, item.responsiblePersonTitle));
@@ -520,12 +527,12 @@ export const AkcioPanel: React.FunctionComponent<IAkcioPanelProps> = ({ context 
                 {isEditor && panelMode === 'view' && (
                     <DefaultButton text="Szerkesztő nézet" onClick={() => setPanelMode('edit')} disabled={isSaving || isLoadingItem} />
                 )}
-                {isEditor && !isReadOnly && (
+                {isEditor && !isReadOnly && canPublish && (
                     <DefaultButton
                         text="Közzététel"
                         iconProps={{ iconName: 'PublishContent' }}
                         onClick={() => setIsPublishDialogOpen(true)}
-                        disabled={isSaving || isLoadingItem || isPublishInProgress || form.status === 'Közzétéve'}
+                        disabled={isSaving || isLoadingItem || isPublishInProgress}
                     />
                 )}
                 {!isReadOnly && (
